@@ -127,6 +127,11 @@ const Navbar = () => {
                     <p className="font-semibold">{userData?.name || "User"}</p>
                     <p className="text-muted-foreground text-xs">{userData?.email}</p>
                     <hr className="my-2" />
+                    <Link to="/profile">
+                      <Button variant="outline" size="sm" className="w-full mb-1">
+                        View Profile
+                      </Button>
+                    </Link>
                     <Button variant="ghost" size="sm" onClick={handleLogout} className="w-full">
                       <LogOut className="h-4 w-4 mr-2" />
                       Logout

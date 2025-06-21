@@ -14,6 +14,7 @@ import RnaStructure from "./pages/RnaStructure";
 import NotFound from "./pages/NotFound";
 import Predict from "./pages/Predict";
 import AuthPage from "./pages/AuthPage";
+import ProfilePage from "./pages/ProfilePage"; // ✅ Imported ProfilePage
 
 // ✅ ProtectedRoute
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -42,6 +43,14 @@ const App = () => {
                   element={
                     <ProtectedRoute>
                       <RnaStructure />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="profile"
+                  element={
+                    <ProtectedRoute>
+                      <ProfilePage />
                     </ProtectedRoute>
                   }
                 />
