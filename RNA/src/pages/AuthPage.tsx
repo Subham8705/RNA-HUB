@@ -15,6 +15,7 @@ import {
 } from '@/firebase';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import Navbar from '@/components/layout/Navbar';
 
 const AuthPage = () => {
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ const AuthPage = () => {
     reset: resetRegister,
   } = useForm();
 
-  // Email/Password Login
+  // Login handler
   const onLogin = async (data: any) => {
     try {
       setIsLoading(true);
@@ -48,7 +49,7 @@ const AuthPage = () => {
     }
   };
 
-  // Email/Password Registration
+  // Register handler
   const onRegister = async (data: any) => {
     try {
       setIsLoading(true);
@@ -73,7 +74,7 @@ const AuthPage = () => {
     }
   };
 
-  // Google Login
+  // Google login handler
   const handleGoogleLogin = async () => {
     try {
       setIsLoading(true);
@@ -85,9 +86,9 @@ const AuthPage = () => {
 
       if (!userSnap.exists()) {
         await setDoc(userRef, {
-          name: user.displayName || "Doctor",
+          name: user.displayName || 'Doctor',
           email: user.email,
-          photoURL: user.photoURL || "",
+          photoURL: user.photoURL || '',
           createdAt: new Date().toISOString(),
         });
       }
@@ -102,86 +103,91 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10 p-8">
-      <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-8 bg-white/5 backdrop-blur-md rounded-2xl p-10 shadow-lg text-white">
-        {/* Login Form */}
-        <div>
-          <h2 className="text-3xl font-bold mb-6">Login</h2>
-          <form onSubmit={handleLoginSubmit(onLogin)} className="space-y-4">
-            <div>
-              <label className="block text-sm mb-1">Email</label>
-              <Input
-                {...loginRegister('email')}
-                type="email"
-                placeholder="you@example.com"
-                className="bg-white/10 text-white placeholder-white/40"
-              />
-            </div>
-            <div>
-              <label className="block text-sm mb-1">Password</label>
-              <Input
-                {...loginRegister('password')}
-                type="password"
-                placeholder="••••••••"
-                className="bg-white/10 text-white placeholder-white/40"
-              />
-            </div>
-            <Button type="submit" size="lg" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Signing In...' : 'Sign In'}
-            </Button>
-          </form>
+    <>
+      <Navbar />
 
-          <div className="mt-4 text-center">
-            <p className="text-sm text-white/70 mb-2">Or</p>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={handleGoogleLogin}
-              disabled={isLoading}
-            >
-              {isLoading ? 'Processing...' : 'Continue with Google'}
-            </Button>
+      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 px-4 py-12">
+        <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-8 bg-white/5 backdrop-blur-lg rounded-3xl p-10 shadow-2xl border border-white/10 text-white">
+
+          {/* Login Form */}
+          <div className="space-y-6">
+            <h2 className="text-4xl font-bold">Login</h2>
+            <form onSubmit={handleLoginSubmit(onLogin)} className="space-y-4">
+              <div>
+                <label className="block text-sm mb-1 text-white/70">Email</label>
+                <Input
+                  {...loginRegister('email')}
+                  type="email"
+                  placeholder="you@example.com"
+                  className="bg-white/10 text-white placeholder-white/50"
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-1 text-white/70">Password</label>
+                <Input
+                  {...loginRegister('password')}
+                  type="password"
+                  placeholder="••••••••"
+                  className="bg-white/10 text-white placeholder-white/50"
+                />
+              </div>
+              <Button type="submit" size="lg" className="w-full" disabled={isLoading}>
+                {isLoading ? 'Signing In...' : 'Sign In'}
+              </Button>
+            </form>
+
+            <div className="text-center">
+              <p className="text-sm text-white/50 mb-2">Or</p>
+              <Button
+                variant="outline"
+                className="w-full text-white border-white/30 hover:bg-white/10"
+                onClick={handleGoogleLogin}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Processing...' : 'Continue with Google'}
+              </Button>
+            </div>
+          </div>
+
+          {/* Register Form */}
+          <div className="space-y-6">
+            <h2 className="text-4xl font-bold">Register</h2>
+            <form onSubmit={handleRegisterSubmit(onRegister)} className="space-y-4">
+              <div>
+                <label className="block text-sm mb-1 text-white/70">Name</label>
+                <Input
+                  {...registerRegister('name')}
+                  type="text"
+                  placeholder="Your Name"
+                  className="bg-white/10 text-white placeholder-white/50"
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-1 text-white/70">Email</label>
+                <Input
+                  {...registerRegister('email')}
+                  type="email"
+                  placeholder="you@example.com"
+                  className="bg-white/10 text-white placeholder-white/50"
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-1 text-white/70">Password</label>
+                <Input
+                  {...registerRegister('password')}
+                  type="password"
+                  placeholder="••••••••"
+                  className="bg-white/10 text-white placeholder-white/50"
+                />
+              </div>
+              <Button type="submit" size="lg" className="w-full" disabled={isLoading}>
+                {isLoading ? 'Creating Account...' : 'Create Account'}
+              </Button>
+            </form>
           </div>
         </div>
-
-        {/* Register Form */}
-        <div>
-          <h2 className="text-3xl font-bold mb-6">Register</h2>
-          <form onSubmit={handleRegisterSubmit(onRegister)} className="space-y-4">
-            <div>
-              <label className="block text-sm mb-1">Name</label>
-              <Input
-                {...registerRegister('name')}
-                type="text"
-                placeholder="Your Name"
-                className="bg-white/10 text-white placeholder-white/40"
-              />
-            </div>
-            <div>
-              <label className="block text-sm mb-1">Email</label>
-              <Input
-                {...registerRegister('email')}
-                type="email"
-                placeholder="you@example.com"
-                className="bg-white/10 text-white placeholder-white/40"
-              />
-            </div>
-            <div>
-              <label className="block text-sm mb-1">Password</label>
-              <Input
-                {...registerRegister('password')}
-                type="password"
-                placeholder="••••••••"
-                className="bg-white/10 text-white placeholder-white/40"
-              />
-            </div>
-            <Button type="submit" size="lg" variant="outline" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Creating Account...' : 'Create Account'}
-            </Button>
-          </form>
-        </div>
       </div>
-    </div>
+    </>
   );
 };
 
