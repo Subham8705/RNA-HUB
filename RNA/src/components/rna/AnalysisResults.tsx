@@ -1,10 +1,6 @@
-// src/components/rna/AnalysisResults.tsx
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import React, { useEffect, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
-import RnaVisualizer from "@/components/rna/RnaVisualizer";
 import RnaResults from "@/components/rna/RnaResults";
 
 interface AnalysisResultsProps {
@@ -16,56 +12,60 @@ interface AnalysisResultsProps {
   prompt: string;
 }
 
-const AnalysisResults = ({
+const AnalysisResults: React.FC<AnalysisResultsProps> = ({
   results,
   showSimulation,
   activeTab,
   setActiveTab,
   toggleSimulation,
-  prompt
-}: AnalysisResultsProps) => {
+  prompt,
+}) => {
+  const viewerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (showSimulation && activeTab === "visualization" && prompt) {
+      const loadViewer = async () => {
+        // dynamically import if not yet loaded
+        if (!(window as any).$3Dmol) {
+          await import("3dmol/build/3Dmol-min.js");
+        }
+        const viewerDiv = viewerRef.current;
+        if (!viewerDiv) return;
+        viewerDiv.innerHTML = "";
+
+        const viewer = (window as any).$3Dmol.createViewer(viewerDiv, {
+          backgroundColor: "white",
+        });
+        viewer.addModelFromDatabase(prompt.toLowerCase(), "pdb");
+        viewer.setStyle({}, { cartoon: { color: "spectrum" } });
+        viewer.zoomTo();
+        viewer.render();
+      };
+
+      loadViewer().catch(console.error);
+    }
+  }, [prompt, showSimulation, activeTab]);
+
   return (
     <div className="space-y-6">
-      <Alert>
-        <AlertTitle>Analysis Complete</AlertTitle>
-        <AlertDescription>
-          RNA analysis has been completed successfully. View the results below.
-        </AlertDescription>
-      </Alert>
-
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="w-full mb-6">
-          <TabsTrigger value="results" className="flex-1">
-            Analysis Results
-          </TabsTrigger>
-          {showSimulation && (
-            <TabsTrigger value="visualization" className="flex-1">
-              3D Visualization
-            </TabsTrigger>
-          )}
+          <TabsTrigger value="results">Analysis Results</TabsTrigger>
+          {showSimulation && <TabsTrigger value="visualization">3D Visualization</TabsTrigger>}
         </TabsList>
 
-        <TabsContent value="results" className="mt-0">
-          <Card>
-            <CardContent className="pt-6">
-              <RnaResults results={results} />
-              <div className="mt-8 flex justify-center">
-                <Button onClick={toggleSimulation} className="flex items-center gap-2">
-                  {showSimulation ? "Hide 3D Simulation" : "Show 3D Simulation"}
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="results">
+          <RnaResults results={results} />
+          <div className="mt-8 flex justify-center">
+            <Button onClick={toggleSimulation}>
+              {showSimulation ? "Hide 3D Simulation" : "Show 3D Simulation"}
+            </Button>
+          </div>
         </TabsContent>
 
         {showSimulation && (
-          <TabsContent value="visualization" className="mt-0">
-            <Card>
-              <CardContent className="pt-6">
-                <RnaVisualizer sequence={prompt} />
-              </CardContent>
-            </Card>
+          <TabsContent value="visualization">
+            <div ref={viewerRef} style={{ width: "100%", height: "600px" }} />
           </TabsContent>
         )}
       </Tabs>

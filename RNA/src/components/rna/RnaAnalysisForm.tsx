@@ -1,11 +1,8 @@
-// src/components/rna/RnaAnalysisForm.tsx
 import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Plus, Search } from "lucide-react";
+import { Plus } from "lucide-react";
 
 interface RnaAnalysisFormProps {
   patientDetails: any;
@@ -26,11 +23,12 @@ const RnaAnalysisForm = ({
   setPatientFile,
   isAnalyzing,
   handleFileChange,
-  handleAnalyze
+  handleAnalyze,
 }: RnaAnalysisFormProps) => {
   const viewerRef = useRef<HTMLDivElement>(null);
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const [pdbInput, setPdbInput] = useState("");
+  const [metadata, setMetadata] = useState("Metadata will appear here...");
 
   useEffect(() => {
     // Load NGL script dynamically once
@@ -56,9 +54,31 @@ const RnaAnalysisForm = ({
   const handleLoadStructure = () => {
     const pdbId = pdbInput.trim().toLowerCase();
     if (!pdbId || !(window as any).nglStage) return;
+
     const stage = (window as any).nglStage;
     stage.removeAllComponents();
-    stage.loadFile("rcsb://" + pdbId, { defaultRepresentation: true });
+
+    stage.loadFile("rcsb://" + pdbId, { defaultRepresentation: true }).then((component: any) => {
+      component.autoView();
+    });
+
+    fetch(`https://data.rcsb.org/rest/v1/core/entry/${pdbId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        const title = data.struct?.title || "N/A";
+        const method = data.exptl?.[0]?.method || "N/A";
+        const resolution = data.rcsb_entry_info?.resolution_combined?.[0] || "N/A";
+
+        const metadataText = `🔬 Title: ${title}
+🧪 Method: ${method}
+📏 Resolution: ${resolution} Å`;
+
+        setMetadata(metadataText);
+      })
+      .catch((err) => {
+        console.error("Metadata fetch error:", err);
+        setMetadata("❌ Error fetching metadata.");
+      });
   };
 
   return (
@@ -69,19 +89,12 @@ const RnaAnalysisForm = ({
       <CardContent>
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-medium mb-1">Patient: {patientDetails.fullName || "Not specified"}</label>
+            <label className="block text-sm font-medium mb-1">
+              Patient: {patientDetails.fullName || "Not specified"}
+            </label>
           </div>
 
-          {/* <Label htmlFor="prompt">Analysis Prompt</Label>
-          <Textarea
-            id="prompt"
-            placeholder="Enter your RNA sequence (e.g., 'GCUCCUAGAAAGGC...')"
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            className="min-h-[100px]"
-          /> */}
-
-          {/* <Label htmlFor="patient-data">Patient Data (Optional)</Label> */}
+          {/* Upload patient file */}
           <div className="flex items-center gap-4">
             <div className="relative flex-1">
               <Input
@@ -105,16 +118,7 @@ const RnaAnalysisForm = ({
             )}
           </div>
 
-          {/* <Button
-            onClick={handleAnalyze}
-            disabled={isAnalyzing || !prompt.trim()}
-            className="w-full"
-          >
-            {isAnalyzing ? "Analyzing..." : "Analyze RNA Structure"}
-            {!isAnalyzing && <Search className="ml-2 h-4 w-4" />}
-          </Button> */}
-
-          {/* 3D Structure Viewer */}
+          {/* 3D Viewer */}
           <div className="mt-8">
             <h3 className="text-lg font-medium mb-2">NGL Viewer: Protein/RNA 3D View</h3>
             <div className="flex items-center gap-2 mb-4">
@@ -124,13 +128,29 @@ const RnaAnalysisForm = ({
                 onChange={(e) => setPdbInput(e.target.value)}
                 className="w-1/2"
               />
-              <Button onClick={handleLoadStructure} disabled={!scriptLoaded}>Load</Button>
+              <Button onClick={handleLoadStructure} disabled={!scriptLoaded}>
+                Load
+              </Button>
             </div>
             <div
               id="viewport"
               ref={viewerRef}
-              style={{ width: "100%", height: "500px", border: "1px solid #ccc", borderRadius: "8px" }}
+              style={{
+                width: "100%",
+                height: "500px",
+                border: "1px solid #ccc",
+                borderRadius: "8px",
+              }}
             />
+            <div
+              className="mt-4 p-4 border rounded-md bg-muted text-sm"
+              style={{
+                whiteSpace: "pre-wrap",
+                fontFamily: "monospace",
+              }}
+            >
+              {metadata}
+            </div>
           </div>
         </div>
       </CardContent>
