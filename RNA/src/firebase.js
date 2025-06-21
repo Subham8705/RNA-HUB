@@ -1,5 +1,3 @@
-// firebase.ts
-
 import { initializeApp } from "firebase/app";
 import {
   getAuth,
@@ -7,6 +5,8 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from "firebase/auth";
 import {
   getFirestore,
@@ -19,7 +19,7 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 
-// ✅ Your Firebase configuration
+// ✅ Firebase config using environment variables (.env)
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -29,18 +29,22 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-
-// ✅ Initialize Firebase app
+// ✅ Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// ✅ Initialize Firebase Auth and Firestore
+// ✅ Initialize services
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// ✅ Export everything needed across the app
+// ✅ Google Auth Provider
+const googleProvider = new GoogleAuthProvider();
+
+// ✅ Exports
 export {
   auth,
   db,
+  googleProvider,
+  signInWithPopup,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
