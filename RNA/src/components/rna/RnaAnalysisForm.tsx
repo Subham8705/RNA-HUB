@@ -72,16 +72,16 @@ const RnaAnalysisForm = ({
             <label className="block text-sm font-medium mb-1">Patient: {patientDetails.fullName || "Not specified"}</label>
           </div>
 
-          <Label htmlFor="prompt">Analysis Prompt</Label>
+          {/* <Label htmlFor="prompt">Analysis Prompt</Label>
           <Textarea
             id="prompt"
             placeholder="Enter your RNA sequence (e.g., 'GCUCCUAGAAAGGC...')"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             className="min-h-[100px]"
-          />
+          /> */}
 
-          <Label htmlFor="patient-data">Patient Data (Optional)</Label>
+          {/* <Label htmlFor="patient-data">Patient Data (Optional)</Label> */}
           <div className="flex items-center gap-4">
             <div className="relative flex-1">
               <Input
@@ -105,14 +105,14 @@ const RnaAnalysisForm = ({
             )}
           </div>
 
-          <Button
+          {/* <Button
             onClick={handleAnalyze}
             disabled={isAnalyzing || !prompt.trim()}
             className="w-full"
           >
             {isAnalyzing ? "Analyzing..." : "Analyze RNA Structure"}
             {!isAnalyzing && <Search className="ml-2 h-4 w-4" />}
-          </Button>
+          </Button> */}
 
           {/* 3D Structure Viewer */}
           <div className="mt-8">
