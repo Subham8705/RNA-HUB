@@ -9,7 +9,7 @@ interface ModeSelectorProps {
 
 const ModeSelector = ({ mode, setMode }: ModeSelectorProps) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
       <Button
         variant={mode === "patient" ? "default" : "outline"}
         className="w-full flex items-center justify-center gap-2"
@@ -33,14 +33,6 @@ const ModeSelector = ({ mode, setMode }: ModeSelectorProps) => {
       >
         <Dna className="h-4 w-4" />
         Detect Cancer Types
-      </Button>
-      <Button
-        variant={mode === "records" ? "default" : "outline"}
-        className="w-full flex items-center justify-center gap-2"
-        onClick={() => setMode("records")}
-      >
-        <FolderOpen className="h-4 w-4" />
-        My Records
       </Button>
     </div>
   );

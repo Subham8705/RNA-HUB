@@ -11,7 +11,7 @@ import {
   getDocs,
   deleteDoc,
   doc,
-  updateDoc
+  updateDoc, // ✅ Required to update patient data
 } from "firebase/firestore";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -19,12 +19,14 @@ interface PatientListProps {
   selectedPatient: any;
   onSelectPatient: (patient: any) => void;
   onNewPatient: () => void;
+  onDeletePatient: (id: string) => void; // ✅ New prop
 }
 
 const PatientList = ({
   selectedPatient,
   onSelectPatient,
   onNewPatient,
+  onDeletePatient
 }: PatientListProps) => {
   const [patients, setPatients] = useState<any[]>([]);
   const { toast } = useToast();
@@ -48,29 +50,19 @@ const PatientList = ({
     fetchPatients();
   }, []);
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this patient?")) {
-      try {
-        await deleteDoc(doc(db, "patients", id));
-        toast({ title: "Deleted", description: "Patient record deleted." });
-        fetchPatients(); // Refresh
-      } catch (err) {
-        console.error(err);
-        toast({ title: "Error", description: "Failed to delete record", variant: "destructive" });
-      }
-    }
-  };
-
   const handleEdit = async (patient: any) => {
-    const newName = prompt("Edit patient name", patient.patientDetails.fullName);
+    const newName = prompt("Edit patient name", patient.patientDetails?.fullName || "");
     if (newName && newName.trim()) {
       try {
         const ref = doc(db, "patients", patient.id);
         await updateDoc(ref, {
-          "patientDetails.fullName": newName.trim(),
+          patientDetails: {
+            ...patient.patientDetails,
+            fullName: newName.trim(),
+          },
         });
         toast({ title: "Updated", description: "Patient name updated." });
-        fetchPatients(); // Refresh
+        fetchPatients();
       } catch (err) {
         console.error(err);
         toast({ title: "Error", description: "Failed to update record", variant: "destructive" });
@@ -94,19 +86,22 @@ const PatientList = ({
             {patients.map((patient) => (
               <div
                 key={patient.id}
-                className={`p-3 rounded-md border cursor-pointer flex justify-between items-center ${
+                className={`p-3 rounded-md border cursor-pointer flex justify-between items-start gap-4 ${
                   selectedPatient?.id === patient.id
                     ? "bg-primary text-primary-foreground"
                     : "hover:bg-accent hover:text-accent-foreground"
                 }`}
                 onClick={() => onSelectPatient(patient)}
               >
-                <div>
+                <div className="flex-1">
                   <div className="font-medium">
-                    {patient.patientDetails.fullName || "Unnamed Patient"}
+                    {patient.patientDetails?.fullName || "Unnamed Patient"}
                   </div>
                   <div className="text-xs">
                     {new Date(patient.timestamp).toLocaleDateString()}
+                  </div>
+                  <div className="text-sm text-muted-foreground mt-1">
+                    {patient.patientDetails?.medicalHistory || "No medical history provided."}
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -125,7 +120,7 @@ const PatientList = ({
                     variant="ghost"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleDelete(patient.id);
+                      onDeletePatient(patient.id); // ✅ Delegate to parent
                     }}
                   >
                     <Trash className="w-4 h-4 text-red-500" />

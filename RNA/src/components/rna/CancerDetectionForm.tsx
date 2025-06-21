@@ -51,9 +51,19 @@ const CancerDetectionForm = ({
               <AlertTitle>Prediction: {cancerPrediction.prediction}</AlertTitle>
               <AlertDescription>
                 File: {cancerPrediction.patient} <br />
-                Confidence: {cancerPrediction.confidence}
               </AlertDescription>
             </Alert>
+            <div className="mt-4 p-4 bg-muted rounded-lg border text-sm leading-relaxed">
+  <h4 className="font-semibold mb-2 text-gray-900 dark:text-gray-100">Cancer Type Descriptions:</h4>
+  <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+    <li><strong>BRCA</strong> - Breast Cancer</li>
+    <li><strong>KIRC</strong> - Renal Cancer (Kidney Renal Clear Cell Carcinoma)</li>
+    <li><strong>LUAD</strong> - Lung Cancer (Lung Adenocarcinoma)</li>
+    <li><strong>PRAD</strong> - Prostate Cancer (Prostate Adenocarcinoma)</li>
+    <li><strong>COAD</strong> - Colon Adenocarcinoma</li>
+  </ul>
+</div>
+
           </div>
         )}
       </CardContent>
