@@ -23,29 +23,29 @@ const PatientDetailsForm = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Patient Information</CardTitle>
+        <CardTitle className="text-xl font-bold text-primary">Patient Clinical Intake Form</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <CardContent className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Personal Information */}
-          <div className="space-y-4">
-            <h3 className="font-medium flex items-center gap-2">
-              <User className="h-4 w-4" />
-              Personal Information
+          <section className="space-y-4">
+            <h3 className="text-lg font-semibold flex items-center gap-2 text-muted-foreground">
+              <User className="h-5 w-5" />
+              Personal Details
             </h3>
-            
-            <div className="space-y-2">
+
+            <div className="grid gap-3">
               <Label htmlFor="fullName">Full Name</Label>
               <Input
                 id="fullName"
                 name="fullName"
                 value={patientDetails.fullName}
                 onChange={handlePatientDetailChange}
-                placeholder="John Doe"
+                placeholder="Dr. John Doe"
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="grid gap-3">
               <Label htmlFor="dateOfBirth">Date of Birth</Label>
               <Input
                 id="dateOfBirth"
@@ -56,14 +56,14 @@ const PatientDetailsForm = ({
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="grid gap-3">
               <Label htmlFor="gender">Gender</Label>
               <select
                 id="gender"
                 name="gender"
                 value={patientDetails.gender}
                 onChange={handlePatientDetailChange}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <option value="">Select gender</option>
                 <option value="male">Male</option>
@@ -73,22 +73,19 @@ const PatientDetailsForm = ({
               </select>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="phone" className="flex items-center gap-1">
-                <Phone className="h-4 w-4" />
-                Phone Number
-              </Label>
+            <div className="grid gap-3">
+              <Label htmlFor="phone">Phone Number</Label>
               <Input
                 id="phone"
                 name="phone"
                 type="tel"
                 value={patientDetails.phone}
                 onChange={handlePatientDetailChange}
-                placeholder="+1 (555) 123-4567"
+                placeholder="+91 9876543210"
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="grid gap-3">
               <Label htmlFor="email">Email Address</Label>
               <Input
                 id="email"
@@ -100,23 +97,20 @@ const PatientDetailsForm = ({
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="address" className="flex items-center gap-1">
-                <MapPin className="h-4 w-4" />
-                Address
-              </Label>
+            <div className="grid gap-3">
+              <Label htmlFor="address">Residential Address</Label>
               <Textarea
                 id="address"
                 name="address"
                 value={patientDetails.address}
                 onChange={handlePatientDetailChange}
-                placeholder="123 Main St, City, Country"
+                placeholder="Street, City, State, Country"
                 rows={2}
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="emergencyContact">Emergency Contact</Label>
+            <div className="grid gap-3">
+              <Label htmlFor="emergencyContact">Emergency Contact Name</Label>
               <Input
                 id="emergencyContact"
                 name="emergencyContact"
@@ -126,130 +120,115 @@ const PatientDetailsForm = ({
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="emergencyPhone">Emergency Phone</Label>
+            <div className="grid gap-3">
+              <Label htmlFor="emergencyPhone">Emergency Contact Phone</Label>
               <Input
                 id="emergencyPhone"
                 name="emergencyPhone"
                 type="tel"
                 value={patientDetails.emergencyPhone}
                 onChange={handlePatientDetailChange}
-                placeholder="+1 (555) 987-6543"
+                placeholder="+91 1234567890"
               />
             </div>
-          </div>
+          </section>
 
           {/* Medical Information */}
-          <div className="space-y-4">
-            <h3 className="font-medium flex items-center gap-2">
-              <HeartPulse className="h-4 w-4" />
-              Medical Information
+          <section className="space-y-4">
+            <h3 className="text-lg font-semibold flex items-center gap-2 text-muted-foreground">
+              <HeartPulse className="h-5 w-5" />
+              Clinical History
             </h3>
 
-            <div className="space-y-2">
-              <Label htmlFor="medicalHistory" className="flex items-center gap-1">
-                <ClipboardList className="h-4 w-4" />
-                Medical History
-              </Label>
+            <div className="grid gap-3">
+              <Label htmlFor="medicalHistory">Medical History</Label>
               <Textarea
                 id="medicalHistory"
                 name="medicalHistory"
                 value={patientDetails.medicalHistory}
                 onChange={handlePatientDetailChange}
-                placeholder="Chronic conditions, previous diagnoses..."
+                placeholder="E.g. Hypertension, Diabetes..."
                 rows={3}
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="grid gap-3">
               <Label htmlFor="presentingComplaints">Presenting Complaints</Label>
               <Textarea
                 id="presentingComplaints"
                 name="presentingComplaints"
                 value={patientDetails.presentingComplaints}
                 onChange={handlePatientDetailChange}
-                placeholder="Reason for current visit..."
+                placeholder="Symptoms or reasons for visit..."
                 rows={2}
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="currentMedications" className="flex items-center gap-1">
-                <Pill className="h-4 w-4" />
-                Current Medications
-              </Label>
+            <div className="grid gap-3">
+              <Label htmlFor="currentMedications">Current Medications</Label>
               <Textarea
                 id="currentMedications"
                 name="currentMedications"
                 value={patientDetails.currentMedications}
                 onChange={handlePatientDetailChange}
-                placeholder="Medication names, dosages, frequencies..."
+                placeholder="Name, dose, frequency..."
                 rows={2}
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="allergies" className="flex items-center gap-1">
-                <AlertCircle className="h-4 w-4" />
-                Allergies
-              </Label>
+            <div className="grid gap-3">
+              <Label htmlFor="allergies">Allergies</Label>
               <Textarea
                 id="allergies"
                 name="allergies"
                 value={patientDetails.allergies}
                 onChange={handlePatientDetailChange}
-                placeholder="Drug allergies, food allergies..."
+                placeholder="E.g. Penicillin, peanuts..."
                 rows={2}
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="grid gap-3">
               <Label htmlFor="pastSurgeries">Past Surgeries</Label>
               <Textarea
                 id="pastSurgeries"
                 name="pastSurgeries"
                 value={patientDetails.pastSurgeries}
                 onChange={handlePatientDetailChange}
-                placeholder="Surgical procedures with dates..."
+                placeholder="Surgery name, date..."
                 rows={2}
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="immunizations" className="flex items-center gap-1">
-                <Syringe className="h-4 w-4" />
-                Immunization Records
-              </Label>
+            <div className="grid gap-3">
+              <Label htmlFor="immunizations">Immunization Records</Label>
               <Textarea
                 id="immunizations"
                 name="immunizations"
                 value={patientDetails.immunizations}
                 onChange={handlePatientDetailChange}
-                placeholder="Vaccinations received with dates..."
+                placeholder="Vaccines with dates..."
                 rows={2}
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="familyHistory" className="flex items-center gap-1">
-                <Users className="h-4 w-4" />
-                Family Medical History
-              </Label>
+            <div className="grid gap-3">
+              <Label htmlFor="familyHistory">Family Medical History</Label>
               <Textarea
                 id="familyHistory"
                 name="familyHistory"
                 value={patientDetails.familyHistory}
                 onChange={handlePatientDetailChange}
-                placeholder="Relevant family medical conditions..."
+                placeholder="Hereditary conditions if any..."
                 rows={3}
               />
             </div>
-          </div>
+          </section>
         </div>
 
-        <div className="mt-6 flex justify-between">
-          <Button onClick={handleSubmitPatientData} variant="outline">
-            Submit Patient Data
+        <div className="pt-6 flex justify-end gap-4">
+          <Button onClick={handleSubmitPatientData} variant="secondary">
+            Save Patient Info
           </Button>
           <Button onClick={() => setMode("rna")} className="gap-2">
             Continue to RNA Analysis
