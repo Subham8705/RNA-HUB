@@ -7,11 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, Search, ArrowRight, Dna, ChartBar, UploadCloud } from "lucide-react";
+import { Plus, Search, ArrowRight, Dna, UploadCloud } from "lucide-react";
 import RnaVisualizer from "@/components/rna/RnaVisualizer";
 import RnaResults from "@/components/rna/RnaResults";
 import Dropzone from "react-dropzone";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from "recharts";
 
 const RnaStructure = () => {
   const [prompt, setPrompt] = useState("");
@@ -25,59 +24,6 @@ const RnaStructure = () => {
   const [cancerPrediction, setCancerPrediction] = useState(null);
 
   const { toast } = useToast();
-
-  // Indian cancer statistics (per 100,000 population)
-  const statsData = [
-    { name: "BRCA", value: 25.8, description: "Breast Cancer", color: "#8884d8" },
-    { name: "KIRC", value: 2.2, description: "Kidney Cancer", color: "#82ca9d" },
-    { name: "LUAD", value: 6.9, description: "Lung Cancer", color: "#ffc658" },
-    { name: "PRAD", value: 9.1, description: "Prostate Cancer", color: "#ff8042" },
-    { name: "COAD", value: 5.1, description: "Colon Cancer", color: "#0088FE" },
-  ];
-
-  // Detailed Indian cancer statistics
-  const indianCancerStats = [
-    {
-      type: "BRCA",
-      incidence: "25.8 per 100,000",
-      mortality: "12.7 per 100,000",
-      peakAge: "40-50 years",
-      trend: "Increasing (urban > rural)",
-      rnaAbnormalities: "miR-21, miR-155 dysregulation, HOTAIR lncRNA overexpression"
-    },
-    {
-      type: "KIRC",
-      incidence: "2.2 per 100,000",
-      mortality: "1.1 per 100,000",
-      peakAge: "50-70 years",
-      trend: "Stable",
-      rnaAbnormalities: "VHL mutations, miR-210 dysregulation, circRNA alterations"
-    },
-    {
-      type: "LUAD",
-      incidence: "6.9 per 100,000",
-      mortality: "6.3 per 100,000",
-      peakAge: "50-70 years",
-      trend: "Increasing (smoking & pollution)",
-      rnaAbnormalities: "EGFR/KRAS mutations, MALAT1 lncRNA, CD44 splicing variants"
-    },
-    {
-      type: "PRAD",
-      incidence: "9.1 per 100,000",
-      mortality: "4.3 per 100,000",
-      peakAge: "65+ years",
-      trend: "Increasing (better detection)",
-      rnaAbnormalities: "TMPRSS2-ERG fusions, PCA3 lncRNA, AR splicing variants"
-    },
-    {
-      type: "COAD",
-      incidence: "5.1 per 100,000",
-      mortality: "3.8 per 100,000",
-      peakAge: "50-70 years",
-      trend: "Increasing (dietary changes)",
-      rnaAbnormalities: "APC/TP53 mutations, miR-34a dysregulation, H19 lncRNA"
-    }
-  ];
 
   const isValidRnaSequence = (sequence) => /^[GCUA]*$/.test(sequence);
 
@@ -200,19 +146,16 @@ const RnaStructure = () => {
     <div className="space-y-8">
       <div className="text-center">
         <h1 className="text-3xl md:text-4xl font-bold mb-4">
-          {mode === "rna" ? "RNA Structure Analysis" : 
-           mode === "cancer" ? "Cancer Type Detection" : "Indian Cancer Statistics"}
+          {mode === "rna" ? "RNA Structure Analysis" : "Cancer Type Detection"}
         </h1>
         <p className="text-muted-foreground max-w-2xl mx-auto">
           {mode === "rna"
             ? "Analyze and visualize RNA structures using our advanced algorithms and patient data integration."
-            : mode === "cancer"
-            ? "Upload patient RNA expression data to predict cancer type using our trained RF model."
-            : "View latest cancer statistics from Indian population (per 100,000)"}
+            : "Upload patient RNA expression data to predict cancer type using our trained RF model."}
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         <Button
           variant={mode === "rna" ? "default" : "outline"}
           className="w-full flex items-center justify-center gap-2"
@@ -229,15 +172,6 @@ const RnaStructure = () => {
         >
           <Dna className="h-4 w-4" />
           Detect Cancer Types
-        </Button>
-
-        <Button
-          variant={mode === "stats" ? "default" : "outline"}
-          className="w-full flex items-center justify-center gap-2"
-          onClick={() => setMode("stats")}
-        >
-          <ChartBar className="h-4 w-4" />
-          View Statistics
         </Button>
       </div>
 
@@ -303,7 +237,7 @@ const RnaStructure = () => {
             </div>
           </CardContent>
         </Card>
-      ) : mode === "cancer" ? (
+      ) : (
         <Card>
           <CardHeader>
             <CardTitle>Upload Genomic Expression File</CardTitle>
@@ -339,140 +273,8 @@ const RnaStructure = () => {
                     Confidence: {cancerPrediction.confidence}
                   </AlertDescription>
                 </Alert>
-
-                <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg border dark:border-gray-700">
-                  <h3 className="font-medium mb-3 text-gray-900 dark:text-gray-100">
-                    Cancer Biomarker Analysis
-                  </h3>
-                  <div className="grid grid-cols-1 gap-4 text-sm">
-                    {indianCancerStats
-                      .filter(cancer => cancerPrediction.prediction.includes(cancer.type))
-                      .map((cancer) => (
-                        <div 
-                          key={cancer.type}
-                          className="bg-white dark:bg-gray-800 p-3 rounded shadow-sm border dark:border-gray-700"
-                        >
-                          <h4 className="font-semibold mb-2 text-gray-900 dark:text-gray-100">
-                            {cancer.type} - {cancer.rnaAbnormalities.split(', ')[0]}
-                          </h4>
-                          <div className="grid grid-cols-2 gap-2">
-                            {cancer.rnaAbnormalities.split(', ').slice(1).map((marker, i) => (
-                              <div key={i} className="flex items-start">
-                                <span className="inline-block bg-blue-100 text-blue-800 rounded-full px-2 py-1 text-xs mr-2">
-                                  {i+1}
-                                </span>
-                                <span className="text-gray-700 dark:text-gray-300 text-xs">{marker}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))
-                    }
-                  </div>
-                </div>
               </div>
             )}
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>Indian Cancer Statistics (per 100,000 population)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[400px] mb-8">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={statsData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey="name" 
-                    label={{ value: 'Cancer Type', position: 'insideBottom', offset: -5 }} 
-                  />
-                  <YAxis 
-                    label={{ value: 'Incidence Rate', angle: -90, position: 'insideLeft' }}
-                  />
-                  <Tooltip 
-                    formatter={(value) => [`${value} cases per 100,000`, "Incidence Rate"]}
-                    labelFormatter={(name) => statsData.find(d => d.name === name)?.description}
-                  />
-                  <Bar dataKey="value" name="Incidence Rate" radius={[6, 6, 0, 0]}>
-                    {statsData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Detailed Cancer Statistics</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {indianCancerStats.map((stat) => (
-                      <div key={stat.type} className="border-b pb-3 last:border-b-0">
-                        <h3 className="font-semibold">
-                          {stat.type} - {statsData.find(d => d.name === stat.type)?.description}
-                        </h3>
-                        <div className="grid grid-cols-2 gap-2 text-sm mt-2">
-                          <div>
-                            <span className="text-muted-foreground">Incidence:</span>
-                            <span className="ml-2 font-medium">{stat.incidence}</span>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">Mortality:</span>
-                            <span className="ml-2 font-medium">{stat.mortality}</span>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">Peak Age:</span>
-                            <span className="ml-2 font-medium">{stat.peakAge}</span>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">Trend:</span>
-                            <span className="ml-2 font-medium">{stat.trend}</span>
-                          </div>
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-2">
-                          <span className="font-medium">RNA Abnormalities:</span> {stat.rnaAbnormalities}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Key Observations</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-3 text-sm">
-                    <li className="flex items-start">
-                      <span className="inline-block bg-blue-100 text-blue-800 rounded-full px-2 py-1 text-xs mr-2">1</span>
-                      <span>Breast cancer (BRCA) has the highest incidence among Indian women, particularly in urban areas</span>
-                    </li>
-                    <li className="flex items-start">
-                      <span className="inline-block bg-blue-100 text-blue-800 rounded-full px-2 py-1 text-xs mr-2">2</span>
-                      <span>Lung cancer (LUAD) shows high mortality-to-incidence ratio (91%) due to late detection</span>
-                    </li>
-                    <li className="flex items-start">
-                      <span className="inline-block bg-blue-100 text-blue-800 rounded-full px-2 py-1 text-xs mr-2">3</span>
-                      <span>Prostate cancer (PRAD) cases are rising due to increased PSA testing in elderly men</span>
-                    </li>
-                    <li className="flex items-start">
-                      <span className="inline-block bg-blue-100 text-blue-800 rounded-full px-2 py-1 text-xs mr-2">4</span>
-                      <span>Colorectal cancers (COAD) are increasing with westernized diets in urban populations</span>
-                    </li>
-                    <li className="flex items-start">
-                      <span className="inline-block bg-blue-100 text-blue-800 rounded-full px-2 py-1 text-xs mr-2">5</span>
-                      <span>Kidney cancer (KIRC) remains relatively rare but shows stable incidence patterns</span>
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
-            </div>
           </CardContent>
         </Card>
       )}
