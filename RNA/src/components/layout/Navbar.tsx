@@ -71,7 +71,7 @@ const Navbar = () => {
   const navLinks = [
     { name: "Home", path: "/" },
     { name: "About Us", path: "/about" },
-     { name: "Research", path: "/research" },
+    //  { name: "Research", path: "/research" },
     ...(currentUser ? [{ name: "RNA Structure", path: "/rna-structure" }] : []),
   ];
 
