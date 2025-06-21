@@ -153,7 +153,7 @@ const ProfilePage = () => {
                     name="phone" 
                     value={formData.phone || ""} 
                     onChange={handleChange} 
-                    placeholder="+1 (555) 123-4567" 
+                    placeholder="+91 12345 67890" 
                   />
                 </div>
               </div>
@@ -193,7 +193,7 @@ const ProfilePage = () => {
                     name="city" 
                     value={formData.city || ""} 
                     onChange={handleChange} 
-                    placeholder="New York" 
+                    placeholder="Hyderabad" 
                   />
                 </div>
               </div>

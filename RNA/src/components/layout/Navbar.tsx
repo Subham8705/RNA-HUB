@@ -74,8 +74,12 @@ const Navbar = () => {
     ...(currentUser ? [{ name: "RNA Structure", path: "/rna-structure" }] : []),
   ];
 
-  const isActive = (path: string) =>
-    path === location.pathname || location.pathname.startsWith(path);
+  const isActive = (path: string) => {
+  if (path === "/") {
+    return location.pathname === path; 
+  }
+  return location.pathname.startsWith(path); 
+};
 
   return (
     <nav className="bg-gradient-to-r from-[#500096] to-[#7566d2] border-b border-border shadow-sm sticky top-0 z-50">
