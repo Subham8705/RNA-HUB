@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, Search, ArrowRight, Dna, UploadCloud } from "lucide-react";
+import { Plus, Search, ArrowRight, Dna, UploadCloud, User, Calendar, Phone, MapPin, HeartPulse, ClipboardList, Pill, AlertCircle, Syringe, Users } from "lucide-react";
 import RnaVisualizer from "@/components/rna/RnaVisualizer";
 import RnaResults from "@/components/rna/RnaResults";
 import Dropzone from "react-dropzone";
@@ -20,12 +20,39 @@ const RnaStructure = () => {
   const [results, setResults] = useState(null);
   const [showSimulation, setShowSimulation] = useState(false);
   const [activeTab, setActiveTab] = useState("results");
-  const [mode, setMode] = useState("rna");
+  const [mode, setMode] = useState("patient");
   const [cancerPrediction, setCancerPrediction] = useState(null);
+  
+  // Patient details state
+  const [patientDetails, setPatientDetails] = useState({
+    fullName: "",
+    dateOfBirth: "",
+    phone: "",
+    email: "",
+    address: "",
+    emergencyContact: "",
+    emergencyPhone: "",
+    gender: "",
+    medicalHistory: "",
+    presentingComplaints: "",
+    currentMedications: "",
+    allergies: "",
+    pastSurgeries: "",
+    immunizations: "",
+    familyHistory: ""
+  });
 
   const { toast } = useToast();
 
   const isValidRnaSequence = (sequence) => /^[GCUA]*$/.test(sequence);
+
+  const handlePatientDetailChange = (e) => {
+    const { name, value } = e.target;
+    setPatientDetails(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -52,7 +79,6 @@ const RnaStructure = () => {
       description: "Using Random Forest model (rf_model.pkl)...",
     });
 
-    // Create array of possible cancer types with their descriptions
     const cancerTypes = [
       { type: "BRCA", description: "Breast Cancer", confidence: "92.5%" },
       { type: "KIRC", description: "Kidney Cancer", confidence: "88.3%" },
@@ -61,7 +87,6 @@ const RnaStructure = () => {
       { type: "COAD", description: "Colon Cancer", confidence: "89.1%" }
     ];
 
-    // Randomly select one cancer type
     const randomCancer = cancerTypes[Math.floor(Math.random() * cancerTypes.length)];
 
     setTimeout(() => {
@@ -131,7 +156,7 @@ const RnaStructure = () => {
           function: "Possible regulatory RNA",
           interactions: ["Protein binding sites detected", "Potential ribosome binding"],
         },
-        patientName: patientName || "N/A",
+        patientName: patientDetails.fullName || "N/A",
       });
       setIsAnalyzing(false);
     }, 2000);
@@ -146,16 +171,27 @@ const RnaStructure = () => {
     <div className="space-y-8">
       <div className="text-center">
         <h1 className="text-3xl md:text-4xl font-bold mb-4">
-          {mode === "rna" ? "RNA Structure Analysis" : "Cancer Type Detection"}
+          {mode === "rna" ? "RNA Structure Analysis" : 
+           mode === "cancer" ? "Cancer Type Detection" : "Patient Details"}
         </h1>
         <p className="text-muted-foreground max-w-2xl mx-auto">
           {mode === "rna"
             ? "Analyze and visualize RNA structures using our advanced algorithms and patient data integration."
-            : "Upload patient RNA expression data to predict cancer type using our trained RF model."}
+            : mode === "cancer"
+            ? "Upload patient RNA expression data to predict cancer type using our trained RF model."
+            : "Enter comprehensive patient information for medical records"}
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <Button
+          variant={mode === "patient" ? "default" : "outline"}
+          className="w-full flex items-center justify-center gap-2"
+          onClick={() => setMode("patient")}
+        >
+          <User className="h-4 w-4" />
+          Patient Details
+        </Button>
         <Button
           variant={mode === "rna" ? "default" : "outline"}
           className="w-full flex items-center justify-center gap-2"
@@ -164,7 +200,6 @@ const RnaStructure = () => {
           <Dna className="h-4 w-4" />
           Generate RNA Structure
         </Button>
-
         <Button
           variant={mode === "cancer" ? "default" : "outline"}
           className="w-full flex items-center justify-center gap-2"
@@ -175,7 +210,242 @@ const RnaStructure = () => {
         </Button>
       </div>
 
-      {mode === "rna" ? (
+      {mode === "patient" ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Patient Information</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Personal Information */}
+              <div className="space-y-4">
+                <h3 className="font-medium flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  Personal Information
+                </h3>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="fullName">Full Name</Label>
+                  <Input
+                    id="fullName"
+                    name="fullName"
+                    value={patientDetails.fullName}
+                    onChange={handlePatientDetailChange}
+                    placeholder="John Doe"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                  <Input
+                    id="dateOfBirth"
+                    name="dateOfBirth"
+                    type="date"
+                    value={patientDetails.dateOfBirth}
+                    onChange={handlePatientDetailChange}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="gender">Gender</Label>
+                  <select
+                    id="gender"
+                    name="gender"
+                    value={patientDetails.gender}
+                    onChange={handlePatientDetailChange}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">Select gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                    <option value="prefer-not-to-say">Prefer not to say</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phone" className="flex items-center gap-1">
+                    <Phone className="h-4 w-4" />
+                    Phone Number
+                  </Label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    value={patientDetails.phone}
+                    onChange={handlePatientDetailChange}
+                    placeholder="+1 (555) 123-4567"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={patientDetails.email}
+                    onChange={handlePatientDetailChange}
+                    placeholder="patient@example.com"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="address" className="flex items-center gap-1">
+                    <MapPin className="h-4 w-4" />
+                    Address
+                  </Label>
+                  <Textarea
+                    id="address"
+                    name="address"
+                    value={patientDetails.address}
+                    onChange={handlePatientDetailChange}
+                    placeholder="123 Main St, City, Country"
+                    rows={2}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="emergencyContact">Emergency Contact</Label>
+                  <Input
+                    id="emergencyContact"
+                    name="emergencyContact"
+                    value={patientDetails.emergencyContact}
+                    onChange={handlePatientDetailChange}
+                    placeholder="Jane Doe"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="emergencyPhone">Emergency Phone</Label>
+                  <Input
+                    id="emergencyPhone"
+                    name="emergencyPhone"
+                    type="tel"
+                    value={patientDetails.emergencyPhone}
+                    onChange={handlePatientDetailChange}
+                    placeholder="+1 (555) 987-6543"
+                  />
+                </div>
+              </div>
+
+              {/* Medical Information */}
+              <div className="space-y-4">
+                <h3 className="font-medium flex items-center gap-2">
+                  <HeartPulse className="h-4 w-4" />
+                  Medical Information
+                </h3>
+
+                <div className="space-y-2">
+                  <Label htmlFor="medicalHistory" className="flex items-center gap-1">
+                    <ClipboardList className="h-4 w-4" />
+                    Medical History
+                  </Label>
+                  <Textarea
+                    id="medicalHistory"
+                    name="medicalHistory"
+                    value={patientDetails.medicalHistory}
+                    onChange={handlePatientDetailChange}
+                    placeholder="Chronic conditions, previous diagnoses..."
+                    rows={3}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="presentingComplaints">Presenting Complaints</Label>
+                  <Textarea
+                    id="presentingComplaints"
+                    name="presentingComplaints"
+                    value={patientDetails.presentingComplaints}
+                    onChange={handlePatientDetailChange}
+                    placeholder="Reason for current visit..."
+                    rows={2}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="currentMedications" className="flex items-center gap-1">
+                    <Pill className="h-4 w-4" />
+                    Current Medications
+                  </Label>
+                  <Textarea
+                    id="currentMedications"
+                    name="currentMedications"
+                    value={patientDetails.currentMedications}
+                    onChange={handlePatientDetailChange}
+                    placeholder="Medication names, dosages, frequencies..."
+                    rows={2}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="allergies" className="flex items-center gap-1">
+                    <AlertCircle className="h-4 w-4" />
+                    Allergies
+                  </Label>
+                  <Textarea
+                    id="allergies"
+                    name="allergies"
+                    value={patientDetails.allergies}
+                    onChange={handlePatientDetailChange}
+                    placeholder="Drug allergies, food allergies..."
+                    rows={2}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="pastSurgeries">Past Surgeries</Label>
+                  <Textarea
+                    id="pastSurgeries"
+                    name="pastSurgeries"
+                    value={patientDetails.pastSurgeries}
+                    onChange={handlePatientDetailChange}
+                    placeholder="Surgical procedures with dates..."
+                    rows={2}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="immunizations" className="flex items-center gap-1">
+                    <Syringe className="h-4 w-4" />
+                    Immunization Records
+                  </Label>
+                  <Textarea
+                    id="immunizations"
+                    name="immunizations"
+                    value={patientDetails.immunizations}
+                    onChange={handlePatientDetailChange}
+                    placeholder="Vaccinations received with dates..."
+                    rows={2}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="familyHistory" className="flex items-center gap-1">
+                    <Users className="h-4 w-4" />
+                    Family Medical History
+                  </Label>
+                  <Textarea
+                    id="familyHistory"
+                    name="familyHistory"
+                    value={patientDetails.familyHistory}
+                    onChange={handlePatientDetailChange}
+                    placeholder="Relevant family medical conditions..."
+                    rows={3}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <Button onClick={() => setMode("rna")} className="gap-2">
+                Continue to RNA Analysis
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : mode === "rna" ? (
         <Card>
           <CardHeader>
             <CardTitle>RNA Analysis Parameters</CardTitle>
@@ -183,14 +453,7 @@ const RnaStructure = () => {
           <CardContent>
             <div className="space-y-6">
               <div className="mb-4">
-                <label className="block text-sm font-medium mb-1 text-white">Patient Name</label>
-                <input
-                  type="text"
-                  value={patientName}
-                  onChange={(e) => setPatientName(e.target.value)}
-                  className="w-full bg-black text-white border border-gray-700 rounded px-3 py-2 text-sm placeholder-gray-400"
-                  placeholder="Enter patient name"
-                />
+                <label className="block text-sm font-medium mb-1">Patient: {patientDetails.fullName || "Not specified"}</label>
               </div>
 
               <Label htmlFor="prompt">Analysis Prompt</Label>

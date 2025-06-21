@@ -11,6 +11,7 @@ import {
   googleProvider,
   doc,
   setDoc,
+  getDoc,
 } from '@/firebase';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -31,6 +32,7 @@ const AuthPage = () => {
     reset: resetRegister,
   } = useForm();
 
+  // Email/Password Login
   const onLogin = async (data: any) => {
     try {
       setIsLoading(true);
@@ -46,6 +48,7 @@ const AuthPage = () => {
     }
   };
 
+  // Email/Password Registration
   const onRegister = async (data: any) => {
     try {
       setIsLoading(true);
@@ -57,6 +60,7 @@ const AuthPage = () => {
         name,
         email,
         createdAt: new Date().toISOString(),
+        photoURL: '',
       });
 
       toast.success('Account created successfully!');
@@ -69,18 +73,24 @@ const AuthPage = () => {
     }
   };
 
+  // Google Login
   const handleGoogleLogin = async () => {
     try {
       setIsLoading(true);
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
 
-      // Optional: Add to Firestore if first-time login
-      await setDoc(doc(db, 'users', user.uid), {
-        name: user.displayName,
-        email: user.email,
-        createdAt: new Date().toISOString(),
-      });
+      const userRef = doc(db, 'users', user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        await setDoc(userRef, {
+          name: user.displayName || "Doctor",
+          email: user.email,
+          photoURL: user.photoURL || "",
+          createdAt: new Date().toISOString(),
+        });
+      }
 
       toast.success('Logged in with Google!');
       navigate('/');
