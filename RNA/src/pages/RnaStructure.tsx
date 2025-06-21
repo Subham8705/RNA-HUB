@@ -154,57 +154,73 @@ const RnaStructure = () => {
     }, 2000);
   };
 
-  const handleCancerSubmit = async () => {
-    if (!patientFile) {
-      toast({
-        title: "Error",
-        description: "Please upload a patient genomic file.",
-        variant: "destructive",
-      });
-      return;
-    }
 
+const handleCancerSubmit = async () => {
+  if (!patientFile) {
     toast({
-      title: "Processing Cancer Data",
-      description: "Using Random Forest model (rf_model.pkl)...",
+      title: "Error",
+      description: "Please upload a patient genomic file.",
+      variant: "destructive",
+    });
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("file", patientFile);
+
+  try {
+    toast({
+      title: "Analyzing...",
+      description: "Sending data to backend for cancer prediction...",
     });
 
-    const cancerTypes = [
-      { type: "BRCA", description: "Breast Cancer", confidence: "92.5%" },
-      { type: "KIRC", description: "Kidney Cancer", confidence: "88.3%" },
-      { type: "LUAD", description: "Lung Cancer", confidence: "94.2%" },
-      { type: "PRAD", description: "Prostate Cancer", confidence: "90.7%" },
-      { type: "COAD", description: "Colon Cancer", confidence: "89.1%" }
-    ];
+    const response = await fetch("http://127.0.0.1:5000/predict", {
+      method: "POST",
+      body: formData,
+    });
 
-    const randomCancer = cancerTypes[Math.floor(Math.random() * cancerTypes.length)];
+    if (!response.ok) {
+      const errData = await response.json();
+      throw new Error(errData.error || "Server responded with an error");
+    }
 
-    setTimeout(async () => {
-      const predictionResult = {
-        patient: patientFile.name,
-        prediction: `${randomCancer.type} - ${randomCancer.description}`,
-        confidence: randomCancer.confidence,
-      };
+    const result = await response.json();
 
-      setCancerPrediction(predictionResult);
+    const predictionResult = {
+      patient: result.sample_id,
+      prediction: result.prediction,
+      confidence: `${(result.confidence * 100).toFixed(2)}%`,
+    };
 
-      const cancerRecord = {
-        id: uuidv4(),
-        type: "cancer-prediction",
-        patientDetails,
-        fileName: patientFile.name,
-        prediction: predictionResult.prediction,
-        confidence: predictionResult.confidence,
-        timestamp: new Date().toISOString(),
-      };
+    setCancerPrediction(predictionResult);
 
-      try {
-        await addDoc(collection(db, "patients"), cancerRecord);
-      } catch (error) {
-        console.error("Error saving cancer prediction to Firestore:", error);
-      }
-    }, 2000);
-  };
+    // Save to Firestore
+    const cancerRecord = {
+      id: uuidv4(),
+      type: "cancer-prediction",
+      patientDetails,
+      fileName: patientFile.name,
+      prediction: predictionResult.prediction,
+      confidence: predictionResult.confidence,
+      timestamp: new Date().toISOString(),
+    };
+
+    await addDoc(collection(db, "patients"), cancerRecord);
+
+    toast({
+      title: "Prediction Complete",
+      description: `Prediction: ${predictionResult.prediction}`,
+    });
+  } catch (error) {
+    console.error("Prediction error:", error);
+    toast({
+      title: "Error",
+      description: error.message || "Prediction failed. Try again.",
+      variant: "destructive",
+    });
+  }
+};
+
 
   const toggleSimulation = () => {
     setShowSimulation(!showSimulation);
