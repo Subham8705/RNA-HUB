@@ -1,18 +1,19 @@
-// src/components/rna/RnaStructure.tsx
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { db } from "@/firebase";
+import { db, auth } from "@/firebase";
 import { collection, addDoc } from "firebase/firestore";
 import { v4 as uuidv4 } from "uuid";
+
 import PatientDetailsForm from "@/components/rna/PatientDetailsForm";
 import RnaAnalysisForm from "@/components/rna/RnaAnalysisForm";
 import CancerDetectionForm from "@/components/rna/CancerDetectionForm";
 import AnalysisResults from "@/components/rna/AnalysisResults";
 import ModeSelector from "@/components/rna/ModeSelector";
+import MyRecords from "@/components/rna/MyRecords";
 
 const RnaStructure = () => {
   const [prompt, setPrompt] = useState("");
-  const [patientFile, setPatientFile] = useState(null);
+  const [patientFile, setPatientFile] = useState<File | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [results, setResults] = useState(null);
   const [showSimulation, setShowSimulation] = useState(false);
@@ -39,14 +40,14 @@ const RnaStructure = () => {
 
   const { toast } = useToast();
 
-  const isValidRnaSequence = (sequence) => /^[GCUA]*$/.test(sequence);
+  const isValidRnaSequence = (sequence: string) => /^[GCUA]*$/.test(sequence);
 
-  const handlePatientDetailChange = (e) => {
+  const handlePatientDetailChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setPatientDetails(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setPatientFile(e.target.files[0]);
       toast({
@@ -58,9 +59,13 @@ const RnaStructure = () => {
 
   const handleSubmitPatientData = async () => {
     try {
+      const doctorId = auth.currentUser?.uid;
+      if (!doctorId) throw new Error("You must be logged in to submit patient data.");
+
       const patientRecord = {
         id: uuidv4(),
         type: "patient-info",
+        doctorId,
         patientDetails,
         timestamp: new Date().toISOString(),
       };
@@ -69,11 +74,11 @@ const RnaStructure = () => {
         title: "Patient data submitted",
         description: "Patient details have been successfully saved.",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving patient details to Firestore:", error);
       toast({
         title: "Error",
-        description: "Failed to save patient data.",
+        description: error.message || "Failed to save patient data.",
         variant: "destructive",
       });
     }
@@ -104,13 +109,13 @@ const RnaStructure = () => {
     const cCount = (prompt.match(/C/g) || []).length;
     const gcContent = (gCount + cCount) / prompt.length;
 
-    const generateSecondaryStructure = (sequence) => {
+    const generateSecondaryStructure = (sequence: string) => {
       const pairings = { G: "C", C: "G", A: "U", U: "A" };
       const structure = new Array(sequence.length).fill(".");
       for (let i = 0; i < sequence.length; i++) {
         for (let j = i + 1; j < sequence.length; j++) {
           if (
-            pairings[sequence[i]] === sequence[j] &&
+            pairings[sequence[i] as keyof typeof pairings] === sequence[j] &&
             structure[i] === "." &&
             structure[j] === "."
           ) {
@@ -123,11 +128,12 @@ const RnaStructure = () => {
       return structure.join("");
     };
 
-    let secondaryStructure = generateSecondaryStructure(prompt);
+    const secondaryStructure = generateSecondaryStructure(prompt);
 
     const rnaResult = {
       id: uuidv4(),
       type: "rna-analysis",
+      doctorId: auth.currentUser?.uid || null,
       patientName: patientDetails.fullName || "N/A",
       patientDetails,
       sequence: prompt,
@@ -154,73 +160,71 @@ const RnaStructure = () => {
     }, 2000);
   };
 
-
-const handleCancerSubmit = async () => {
-  if (!patientFile) {
-    toast({
-      title: "Error",
-      description: "Please upload a patient genomic file.",
-      variant: "destructive",
-    });
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append("file", patientFile);
-
-  try {
-    toast({
-      title: "Analyzing...",
-      description: "Sending data to backend for cancer prediction...",
-    });
-
-    const response = await fetch("http://127.0.0.1:5000/predict", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errData = await response.json();
-      throw new Error(errData.error || "Server responded with an error");
+  const handleCancerSubmit = async () => {
+    if (!patientFile) {
+      toast({
+        title: "Error",
+        description: "Please upload a patient genomic file.",
+        variant: "destructive",
+      });
+      return;
     }
 
-    const result = await response.json();
+    const formData = new FormData();
+    formData.append("file", patientFile);
 
-    const predictionResult = {
-      patient: result.sample_id,
-      prediction: result.prediction,
-      confidence: `${(result.confidence * 100).toFixed(2)}%`,
-    };
+    try {
+      toast({
+        title: "Analyzing...",
+        description: "Sending data to backend for cancer prediction...",
+      });
 
-    setCancerPrediction(predictionResult);
+      const response = await fetch("http://127.0.0.1:5000/predict", {
+        method: "POST",
+        body: formData,
+      });
 
-    // Save to Firestore
-    const cancerRecord = {
-      id: uuidv4(),
-      type: "cancer-prediction",
-      patientDetails,
-      fileName: patientFile.name,
-      prediction: predictionResult.prediction,
-      confidence: predictionResult.confidence,
-      timestamp: new Date().toISOString(),
-    };
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || "Server responded with an error");
+      }
 
-    await addDoc(collection(db, "patients"), cancerRecord);
+      const result = await response.json();
 
-    toast({
-      title: "Prediction Complete",
-      description: `Prediction: ${predictionResult.prediction}`,
-    });
-  } catch (error) {
-    console.error("Prediction error:", error);
-    toast({
-      title: "Error",
-      description: error.message || "Prediction failed. Try again.",
-      variant: "destructive",
-    });
-  }
-};
+      const predictionResult = {
+        patient: result.sample_id,
+        prediction: result.prediction,
+        confidence: `${(result.confidence * 100).toFixed(2)}%`,
+      };
 
+      setCancerPrediction(predictionResult);
+
+      const cancerRecord = {
+        id: uuidv4(),
+        type: "cancer-prediction",
+        doctorId: auth.currentUser?.uid || null,
+        patientDetails,
+        fileName: patientFile.name,
+        prediction: predictionResult.prediction,
+        confidence: predictionResult.confidence,
+        timestamp: new Date().toISOString(),
+      };
+
+      await addDoc(collection(db, "patients"), cancerRecord);
+
+      toast({
+        title: "Prediction Complete",
+        description: `Prediction: ${predictionResult.prediction}`,
+      });
+    } catch (error: any) {
+      console.error("Prediction error:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Prediction failed. Try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const toggleSimulation = () => {
     setShowSimulation(!showSimulation);
@@ -231,29 +235,38 @@ const handleCancerSubmit = async () => {
     <div className="space-y-8">
       <div className="text-center">
         <h1 className="text-3xl md:text-4xl font-bold mb-4">
-          {mode === "rna" ? "RNA Structure Analysis" : 
-           mode === "cancer" ? "Cancer Type Detection" : "Patient Details"}
+          {mode === "rna"
+            ? "RNA Structure Analysis"
+            : mode === "cancer"
+            ? "Cancer Type Detection"
+            : mode === "records"
+            ? "My Patient Records"
+            : "Patient Details"}
         </h1>
         <p className="text-muted-foreground max-w-2xl mx-auto">
           {mode === "rna"
             ? "Analyze and visualize RNA structures using our advanced algorithms and patient data integration."
             : mode === "cancer"
             ? "Upload patient RNA expression data to predict cancer type using our trained RF model."
+            : mode === "records"
+            ? "View and manage previously submitted patient records."
             : "Enter comprehensive patient information for medical records"}
         </p>
       </div>
 
       <ModeSelector mode={mode} setMode={setMode} />
 
-      {mode === "patient" ? (
-        <PatientDetailsForm 
+      {mode === "patient" && (
+        <PatientDetailsForm
           patientDetails={patientDetails}
           handlePatientDetailChange={handlePatientDetailChange}
           handleSubmitPatientData={handleSubmitPatientData}
           setMode={setMode}
         />
-      ) : mode === "rna" ? (
-        <RnaAnalysisForm 
+      )}
+
+      {mode === "rna" && (
+        <RnaAnalysisForm
           patientDetails={patientDetails}
           prompt={prompt}
           setPrompt={setPrompt}
@@ -263,8 +276,10 @@ const handleCancerSubmit = async () => {
           handleFileChange={handleFileChange}
           handleAnalyze={handleAnalyze}
         />
-      ) : (
-        <CancerDetectionForm 
+      )}
+
+      {mode === "cancer" && (
+        <CancerDetectionForm
           patientFile={patientFile}
           setPatientFile={setPatientFile}
           cancerPrediction={cancerPrediction}
@@ -272,8 +287,12 @@ const handleCancerSubmit = async () => {
         />
       )}
 
+      {mode === "records" && (
+        <MyRecords />
+      )}
+
       {mode === "rna" && results && (
-        <AnalysisResults 
+        <AnalysisResults
           results={results}
           showSimulation={showSimulation}
           activeTab={activeTab}

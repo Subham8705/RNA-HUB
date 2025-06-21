@@ -1,4 +1,5 @@
 // src/components/rna/RnaAnalysisForm.tsx
+import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,39 @@ const RnaAnalysisForm = ({
   handleFileChange,
   handleAnalyze
 }: RnaAnalysisFormProps) => {
+  const viewerRef = useRef<HTMLDivElement>(null);
+  const [scriptLoaded, setScriptLoaded] = useState(false);
+  const [pdbInput, setPdbInput] = useState("");
+
+  useEffect(() => {
+    // Load NGL script dynamically once
+    const existingScript = document.getElementById("ngl-script");
+    if (!existingScript) {
+      const script = document.createElement("script");
+      script.src = "https://unpkg.com/ngl@latest/dist/ngl.js";
+      script.id = "ngl-script";
+      script.async = true;
+      script.onload = () => {
+        setScriptLoaded(true);
+        if (viewerRef.current && (window as any).NGL) {
+          const stage = new (window as any).NGL.Stage(viewerRef.current);
+          (window as any).nglStage = stage;
+        }
+      };
+      document.body.appendChild(script);
+    } else {
+      setScriptLoaded(true);
+    }
+  }, []);
+
+  const handleLoadStructure = () => {
+    const pdbId = pdbInput.trim().toLowerCase();
+    if (!pdbId || !(window as any).nglStage) return;
+    const stage = (window as any).nglStage;
+    stage.removeAllComponents();
+    stage.loadFile("rcsb://" + pdbId, { defaultRepresentation: true });
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -34,7 +68,7 @@ const RnaAnalysisForm = ({
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
-          <div className="mb-4">
+          <div>
             <label className="block text-sm font-medium mb-1">Patient: {patientDetails.fullName || "Not specified"}</label>
           </div>
 
@@ -79,6 +113,25 @@ const RnaAnalysisForm = ({
             {isAnalyzing ? "Analyzing..." : "Analyze RNA Structure"}
             {!isAnalyzing && <Search className="ml-2 h-4 w-4" />}
           </Button>
+
+          {/* 3D Structure Viewer */}
+          <div className="mt-8">
+            <h3 className="text-lg font-medium mb-2">NGL Viewer: Protein/RNA 3D View</h3>
+            <div className="flex items-center gap-2 mb-4">
+              <Input
+                placeholder="Enter PDB ID (e.g. 8RBJ)"
+                value={pdbInput}
+                onChange={(e) => setPdbInput(e.target.value)}
+                className="w-1/2"
+              />
+              <Button onClick={handleLoadStructure} disabled={!scriptLoaded}>Load</Button>
+            </div>
+            <div
+              id="viewport"
+              ref={viewerRef}
+              style={{ width: "100%", height: "500px", border: "1px solid #ccc", borderRadius: "8px" }}
+            />
+          </div>
         </div>
       </CardContent>
     </Card>
