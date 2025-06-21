@@ -7,8 +7,10 @@ import {
   db,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  signInWithPopup,
+  googleProvider,
   doc,
-  setDoc
+  setDoc,
 } from '@/firebase';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -34,11 +36,11 @@ const AuthPage = () => {
       setIsLoading(true);
       const { email, password } = data;
       await signInWithEmailAndPassword(auth, email, password);
-      toast.success("Logged in successfully!");
+      toast.success('Logged in successfully!');
       resetLogin();
-      navigate("/");
+      navigate('/');
     } catch (error: any) {
-      toast.error(error.message || "Login failed");
+      toast.error(error.message || 'Login failed');
     } finally {
       setIsLoading(false);
     }
@@ -51,17 +53,39 @@ const AuthPage = () => {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      await setDoc(doc(db, "users", user.uid), {
+      await setDoc(doc(db, 'users', user.uid), {
         name,
         email,
         createdAt: new Date().toISOString(),
       });
 
-      toast.success("Account created successfully!");
+      toast.success('Account created successfully!');
       resetRegister();
-      navigate("/");
+      navigate('/');
     } catch (error: any) {
-      toast.error(error.message || "Registration failed");
+      toast.error(error.message || 'Registration failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      setIsLoading(true);
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+
+      // Optional: Add to Firestore if first-time login
+      await setDoc(doc(db, 'users', user.uid), {
+        name: user.displayName,
+        email: user.email,
+        createdAt: new Date().toISOString(),
+      });
+
+      toast.success('Logged in with Google!');
+      navigate('/');
+    } catch (error: any) {
+      toast.error(error.message || 'Google sign-in failed');
     } finally {
       setIsLoading(false);
     }
@@ -70,7 +94,6 @@ const AuthPage = () => {
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10 p-8">
       <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-8 bg-white/5 backdrop-blur-md rounded-2xl p-10 shadow-lg text-white">
-
         {/* Login Form */}
         <div>
           <h2 className="text-3xl font-bold mb-6">Login</h2>
@@ -94,9 +117,21 @@ const AuthPage = () => {
               />
             </div>
             <Button type="submit" size="lg" className="w-full" disabled={isLoading}>
-              {isLoading ? "Signing In..." : "Sign In"}
+              {isLoading ? 'Signing In...' : 'Sign In'}
             </Button>
           </form>
+
+          <div className="mt-4 text-center">
+            <p className="text-sm text-white/70 mb-2">Or</p>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={handleGoogleLogin}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Processing...' : 'Continue with Google'}
+            </Button>
+          </div>
         </div>
 
         {/* Register Form */}
@@ -131,7 +166,7 @@ const AuthPage = () => {
               />
             </div>
             <Button type="submit" size="lg" variant="outline" className="w-full" disabled={isLoading}>
-              {isLoading ? "Creating Account..." : "Create Account"}
+              {isLoading ? 'Creating Account...' : 'Create Account'}
             </Button>
           </form>
         </div>
