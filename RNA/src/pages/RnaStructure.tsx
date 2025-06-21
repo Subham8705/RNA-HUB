@@ -11,6 +11,9 @@ import { Plus, Search, ArrowRight, Dna, UploadCloud, User, Calendar, Phone, MapP
 import RnaVisualizer from "@/components/rna/RnaVisualizer";
 import RnaResults from "@/components/rna/RnaResults";
 import Dropzone from "react-dropzone";
+import { db } from "@/firebase";
+import { collection, addDoc } from "firebase/firestore";
+import { v4 as uuidv4 } from "uuid";
 
 const RnaStructure = () => {
   const [prompt, setPrompt] = useState("");
@@ -22,8 +25,7 @@ const RnaStructure = () => {
   const [activeTab, setActiveTab] = useState("results");
   const [mode, setMode] = useState("patient");
   const [cancerPrediction, setCancerPrediction] = useState(null);
-  
-  // Patient details state
+
   const [patientDetails, setPatientDetails] = useState({
     fullName: "",
     dateOfBirth: "",
@@ -64,41 +66,30 @@ const RnaStructure = () => {
     }
   };
 
-  const handleCancerSubmit = () => {
-    if (!patientFile) {
+  const handleSubmitPatientData = async () => {
+    try {
+      const patientRecord = {
+        id: uuidv4(),
+        type: "patient-info",
+        patientDetails,
+        timestamp: new Date().toISOString(),
+      };
+      await addDoc(collection(db, "patients"), patientRecord);
+      toast({
+        title: "Patient data submitted",
+        description: "Patient details have been successfully saved.",
+      });
+    } catch (error) {
+      console.error("Error saving patient details to Firestore:", error);
       toast({
         title: "Error",
-        description: "Please upload a patient genomic file.",
+        description: "Failed to save patient data.",
         variant: "destructive",
       });
-      return;
     }
-
-    toast({
-      title: "Processing Cancer Data",
-      description: "Using Random Forest model (rf_model.pkl)...",
-    });
-
-    const cancerTypes = [
-      { type: "BRCA", description: "Breast Cancer", confidence: "92.5%" },
-      { type: "KIRC", description: "Kidney Cancer", confidence: "88.3%" },
-      { type: "LUAD", description: "Lung Cancer", confidence: "94.2%" },
-      { type: "PRAD", description: "Prostate Cancer", confidence: "90.7%" },
-      { type: "COAD", description: "Colon Cancer", confidence: "89.1%" }
-    ];
-
-    const randomCancer = cancerTypes[Math.floor(Math.random() * cancerTypes.length)];
-
-    setTimeout(() => {
-      setCancerPrediction({
-        patient: patientFile.name,
-        prediction: `${randomCancer.type} - ${randomCancer.description}`,
-        confidence: randomCancer.confidence,
-      });
-    }, 2000);
   };
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     if (!prompt.trim()) {
       toast({
         title: "Error",
@@ -144,21 +135,84 @@ const RnaStructure = () => {
 
     let secondaryStructure = generateSecondaryStructure(prompt);
 
+    const rnaResult = {
+      id: uuidv4(),
+      type: "rna-analysis",
+      patientName: patientDetails.fullName || "N/A",
+      patientDetails,
+      sequence: prompt,
+      structure: secondaryStructure,
+      length: prompt.length,
+      gc_content: gcContent,
+      predictions: {
+        stability: "High",
+        function: "Possible regulatory RNA",
+        interactions: ["Protein binding sites detected", "Potential ribosome binding"],
+      },
+      timestamp: new Date().toISOString(),
+    };
+
+    try {
+      await addDoc(collection(db, "patients"), rnaResult);
+    } catch (error) {
+      console.error("Error saving RNA analysis to Firestore:", error);
+    }
+
     setTimeout(() => {
-      setResults({
-        rnaId: "RNA-" + Math.floor(Math.random() * 10000),
-        sequence: prompt,
-        structure: secondaryStructure,
-        length: prompt.length,
-        gc_content: gcContent,
-        predictions: {
-          stability: "High",
-          function: "Possible regulatory RNA",
-          interactions: ["Protein binding sites detected", "Potential ribosome binding"],
-        },
-        patientName: patientDetails.fullName || "N/A",
-      });
+      setResults(rnaResult);
       setIsAnalyzing(false);
+    }, 2000);
+  };
+
+  const handleCancerSubmit = async () => {
+    if (!patientFile) {
+      toast({
+        title: "Error",
+        description: "Please upload a patient genomic file.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Processing Cancer Data",
+      description: "Using Random Forest model (rf_model.pkl)...",
+    });
+
+    const cancerTypes = [
+      { type: "BRCA", description: "Breast Cancer", confidence: "92.5%" },
+      { type: "KIRC", description: "Kidney Cancer", confidence: "88.3%" },
+      { type: "LUAD", description: "Lung Cancer", confidence: "94.2%" },
+      { type: "PRAD", description: "Prostate Cancer", confidence: "90.7%" },
+      { type: "COAD", description: "Colon Cancer", confidence: "89.1%" }
+    ];
+
+    const randomCancer = cancerTypes[Math.floor(Math.random() * cancerTypes.length)];
+
+    setTimeout(async () => {
+      const predictionResult = {
+        patient: patientFile.name,
+        prediction: `${randomCancer.type} - ${randomCancer.description}`,
+        confidence: randomCancer.confidence,
+      };
+
+      setCancerPrediction(predictionResult);
+
+      const cancerRecord = {
+        id: uuidv4(),
+        type: "cancer-prediction",
+        patientDetails,
+        fileName: patientFile.name,
+        prediction: predictionResult.prediction,
+        confidence: predictionResult.confidence,
+        timestamp: new Date().toISOString(),
+      };
+
+      try {
+        await addDoc(collection(db, "patients"), cancerRecord);
+      } catch (error) {
+        console.error("Error saving cancer prediction to Firestore:", error);
+      }
     }, 2000);
   };
 
@@ -437,14 +491,17 @@ const RnaStructure = () => {
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end">
-              <Button onClick={() => setMode("rna")} className="gap-2">
-                Continue to RNA Analysis
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+            <div className="mt-6 flex justify-between">
+            <Button onClick={handleSubmitPatientData} variant="outline">
+              Submit Patient Data
+            </Button>
+            <Button onClick={() => setMode("rna")} className="gap-2">
+              Continue to RNA Analysis
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
       ) : mode === "rna" ? (
         <Card>
           <CardHeader>
