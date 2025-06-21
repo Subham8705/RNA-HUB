@@ -9,7 +9,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./components/layout/Layout";
 import Home from "./pages/Index";
 import AboutUs from "./pages/AboutUs";
-// import Research from "./pages/Research";
+import Research from "./pages/Research";
 import RnaStructure from "./pages/RnaStructure";
 import NotFound from "./pages/NotFound";
 import Predict from "./pages/Predict";
@@ -37,7 +37,7 @@ const App = () => {
               <Route path="/" element={<Layout />}>
                 <Route index element={<Home />} />
                 <Route path="about" element={<AboutUs />} />
-                {/* <Route path="research" element={<Research />} /> */}
+                <Route path="research" element={<Research />} />
                 <Route
                   path="rna-structure"
                   element={
