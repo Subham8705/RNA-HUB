@@ -112,7 +112,7 @@ const Research = () => {
   return (
     <div className="space-y-8">
       <div className="text-center">
-        <h1 className="text-3xl md:text-4xl font-bold mb-4">Research Library</h1>
+        <h1 className="text-3xl md:text-4xl font-bold mb-4">Patient Data</h1>
         <p className="text-muted-foreground max-w-2xl mx-auto">
           Explore our comprehensive collection of publications on RNA and DNA structures and their applications
         </p>
