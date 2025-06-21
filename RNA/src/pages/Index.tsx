@@ -55,8 +55,8 @@ const Home = () => {
               icon: "🧪",
             },
             {
-              title: "Research Library",
-              description: "Analyze RNA structures with our advanced tools",
+              title: "Patient Data",
+              description: "Access Patient Details and Cancer Detection",
               link: "/rna-structure",
               icon: "📚",
             },
