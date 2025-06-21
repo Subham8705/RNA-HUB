@@ -22,6 +22,7 @@ except FileNotFoundError as e:
 @app.route('/predict', methods=['POST'])
 def predict():
     # Check if file is provided
+
     if 'file' not in request.files:
         return jsonify({'error': 'No file uploaded.'}), 400
 
@@ -63,7 +64,6 @@ def predict():
         return jsonify({
             'sample_id': data['sample_id'].iloc[0],
             'prediction': y_pred,
-            'confidence': float(confidence)  # Convert to standard Python float
         })
 
     except Exception as e:
